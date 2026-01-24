@@ -1,0 +1,135 @@
+body {
+    overflow-x: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin 0.25s ease-out;
+    width: 15rem;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 0.875rem 1.25rem;
+    font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+    width: 15rem;
+}
+
+#page-content-wrapper {
+    min-width: 100vw;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+}
+
+/* Dark Mode Overrides */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode .bg-light {
+    background-color: #1f1f1f !important;
+    border-color: #333 !important;
+}
+
+body.dark-mode .bg-white {
+    background-color: #1f1f1f !important;
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .navbar-text, body.dark-mode .nav-link {
+    color: #e0e0e0 !important;
+}
+
+body.dark-mode .card {
+    background-color: #1e1e1e;
+    border-color: #333;
+}
+
+body.dark-mode .text-muted {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .form-control, body.dark-mode .form-select {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #fff;
+}
+
+body.dark-mode .form-label,
+body.dark-mode .form-check-label,
+body.dark-mode .card-title,
+body.dark-mode .card .text-muted {
+    color: #d0d0d0 !important;
+}
+
+body.dark-mode .form-control::placeholder {
+    color: #9aa0a6;
+}
+
+body.dark-mode .table {
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+body.dark-mode .table th,
+body.dark-mode .table td,
+body.dark-mode .list-group-item {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    border-color: #333;
+}
+
+body.dark-mode .nav-tabs .nav-link {
+    color: #e0e0e0;
+}
+
+body.dark-mode .nav-tabs .nav-link.active {
+    background-color: #1f1f1f;
+    border-color: #333 #333 #1f1f1f;
+    color: #ffffff;
+}
+
+/* Dark mode readability for explanation card */
+body.dark-mode #explanationContainer,
+body.dark-mode #explanationContainer .card,
+body.dark-mode #explanationContainer .card-body {
+    color: #e0e0e0 !important;
+}
+body.dark-mode #explanationContainer .card-header {
+    color: #ffffff;
+    background-color: #222 !important;
+    border-color: #333 !important;
+}
+body.dark-mode #explanationContainer * {
+    color: #e0e0e0 !important;
+}
+
+/* Experiment Specific */
+.nav-tabs .nav-link {
+    cursor: pointer;
+}
+.tab-content {
+    padding-top: 20px;
+}

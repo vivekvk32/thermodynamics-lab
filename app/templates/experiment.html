@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="display-6">{{ experiment.title }}</h2>
+        <p class="text-muted">Experiment ID: {{ experiment.slug }}</p>
+    </div>
+</div>
+
+<ul class="nav nav-tabs" id="expTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Overview</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="theory-tab" data-bs-toggle="tab" data-bs-target="#theory" type="button" role="tab">Theory</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="procedure-tab" data-bs-toggle="tab" data-bs-target="#procedure" type="button" role="tab">Procedure</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="observations-tab" data-bs-toggle="tab" data-bs-target="#observations" type="button" role="tab">Observations</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="calculations-tab" data-bs-toggle="tab" data-bs-target="#calculations" type="button" role="tab">Calculations</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="simulation-tab" data-bs-toggle="tab" data-bs-target="#simulation" type="button" role="tab">Simulation</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="viva-tab" data-bs-toggle="tab" data-bs-target="#viva" type="button" role="tab">Viva</button>
+  </li>
+</ul>
+
+<div class="tab-content border-start border-end border-bottom p-4 bg-white" id="expTabsContent">
+  <!-- Overview -->
+  <div class="tab-pane fade show active" id="overview" role="tabpanel">
+      <h4>Aim</h4>
+      <p>{{ experiment.content.aim }}</p>
+      <h4>Apparatus</h4>
+      <p>{{ experiment.content.apparatus }}</p>
+      <h4>Description</h4>
+      <div class="description-text">
+        {{ experiment.content.description | safe }}
+      </div>
+  </div>
+
+  <!-- Theory -->
+  <div class="tab-pane fade" id="theory" role="tabpanel">
+       <div class="theory-content">
+           {{ experiment.content.theory | safe }}
+       </div>
+  </div>
+
+  <!-- Procedure -->
+  <div class="tab-pane fade" id="procedure" role="tabpanel">
+      <ol class="list-group list-group-numbered">
+        {% for step in experiment.content.procedure %}
+          <li class="list-group-item">{{ step }}</li>
+        {% endfor %}
+      </ol>
+  </div>
+
+  <!-- Observations/Input -->
+  <div class="tab-pane fade" id="observations" role="tabpanel">
+      {% if experiment.slug == 'therm-conductivity-metal-rod' %}
+      <div class="text-center mb-4">
+          <img src="{{ url_for('static', filename='img/observation-diagram.png') }}"
+               alt="Thermal conductivity apparatus observation diagram"
+               class="img-fluid rounded border">
+      </div>
+      {% endif %}
+      <form id="calcForm">
+          <input type="hidden" name="slug" value="{{ experiment.slug }}">
+          
+          <div class="card mb-4 bg-light">
+              <div class="card-body">
+                  <h5 class="card-title">Student Details</h5>
+                  <div class="row g-3">
+                      <div class="col-md-3">
+                          <label class="form-label">Name</label>
+                          <input type="text" class="form-control" name="student_name" required>
+                      </div>
+                      <div class="col-md-3">
+                          <label class="form-label">USN / Roll No</label>
+                          <input type="text" class="form-control" name="usn" required>
+                      </div>
+                      <div class="col-md-3">
+                          <label class="form-label">Date</label>
+                          <input type="date" class="form-control" name="date" required>
+                      </div>
+                      <div class="col-md-3">
+                          <label class="form-label">Instructor</label>
+                          <input type="text" class="form-control" name="instructor" value="Prof. " required>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <div class="row">
+              <div class="col-md-6">
+                 {% if experiment.slug == 'natural-convection-vertical-tube' %}
+                 <h5>Observations (Multiple Trials)</h5>
+                 <div class="mb-3">
+                     <label class="form-label">Air Properties Mode</label>
+                     <select class="form-select" name="air_props_mode">
+                         <option value="auto" selected>Auto (from film temperature)</option>
+                         <option value="manual">Manual (enter properties)</option>
+                     </select>
+                 </div>
+                 <div class="row g-2 field-row" data-prop-group="air_props_manual">
+                     <div class="col-6">
+                         <label class="form-label">Air Density (rho)</label>
+                         <input type="number" step="any" class="form-control" name="rho_air">
+                     </div>
+                     <div class="col-6">
+                         <label class="form-label">Specific Heat (Cp)</label>
+                         <input type="number" step="any" class="form-control" name="cp_air">
+                     </div>
+                     <div class="col-6">
+                         <label class="form-label">Thermal Conductivity (k)</label>
+                         <input type="number" step="any" class="form-control" name="k_air">
+                     </div>
+                     <div class="col-6">
+                         <label class="form-label">Dynamic Viscosity (mu)</label>
+                         <input type="number" step="any" class="form-control" name="mu_air">
+                     </div>
+                     <div class="col-6">
+                         <label class="form-label">Kinematic Viscosity (nu)</label>
+                         <input type="number" step="any" class="form-control" name="nu_air">
+                     </div>
+                     <div class="col-6">
+                         <label class="form-label">Prandtl Number (Pr)</label>
+                         <input type="number" step="any" class="form-control" name="pr_air">
+                     </div>
+                 </div>
+                 <div class="mt-4 table-responsive">
+                     <table class="table table-sm table-bordered align-middle" id="trialTable" style="min-width: 980px;">
+                         <thead class="table-light">
+                             <tr>
+                                 <th>Sl No</th>
+                                 <th>V (Volts)</th>
+                                 <th>I (Amps)</th>
+                                 <th>T1 (°C)</th>
+                                 <th>T2 (°C)</th>
+                                 <th>T3 (°C)</th>
+                                 <th>T4 (°C)</th>
+                                 <th>T5 (°C)</th>
+                                 <th>T6 (°C)</th>
+                                 <th>Ambient temp T7 = Ta (°C)</th>
+                             </tr>
+                         </thead>
+                         <tbody id="trialTableBody">
+                             {% for i in range(1, 3) %}
+                             <tr data-trial="{{ i }}">
+                                 <td>{{ i }}</td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_v" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_i" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t1" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t2" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t3" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t4" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t5" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t6" required></td>
+                                 <td><input type="number" step="any" class="form-control form-control-sm" name="trial_{{ i }}_t7" required></td>
+                             </tr>
+                             {% endfor %}
+                         </tbody>
+                     </table>
+                     <div class="d-flex gap-2">
+                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="addTrialRow()">Add Trial</button>
+                         <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeTrialRow()">Remove Trial</button>
+                     </div>
+                 </div>
+                 {% else %}
+                 <h5>Measured Values</h5>
+                 {% for field in experiment.content.inputs %}
+                 <div class="mb-3 row field-row" data-prop-group="{{ field.group if field.group is defined else '' }}">
+                    <label class="col-sm-6 col-form-label">
+                      {% if field.name in ['vol_flow', 'flow_rate_value'] %}
+                      Water Flow Rate
+                      {% elif field.name == 'air_props_mode' %}
+                      Air Properties Mode
+                      {% else %}
+                      {{ field.label }}{% if field.unit %} ({{ field.unit }}){% endif %}
+                      {% endif %}
+                    </label>
+                    <div class="col-sm-6">
+                      {% if field.name in ['vol_flow', 'flow_rate_value'] %}
+                      <div class="input-group">
+                        <input type="number" step="any" class="form-control" name="{{ field.name }}" {% if field.required is not defined or field.required %}required{% endif %}>
+                        <select class="form-select" name="flow_rate_unit">
+                          <option value="L/min" {% if field.name == 'flow_rate_value' %}selected{% endif %}>L/min</option>
+                          <option value="mL/min">mL/min</option>
+                          <option value="cc/min" {% if field.name == 'vol_flow' %}selected{% endif %}>cc/min</option>
+                          <option value="kg/s">kg/s</option>
+                          <option value="kg/min">kg/min</option>
+                        </select>
+                      </div>
+                      {% elif field.type is defined and field.type == 'select' %}
+                      <select class="form-select" name="{{ field.name }}">
+                        {% for opt in field.options %}
+                        <option value="{{ opt.value }}" {% if opt.selected %}selected{% endif %}>{{ opt.label }}</option>
+                        {% endfor %}
+                      </select>
+                      {% else %}
+                      <input type="number" step="any" class="form-control" name="{{ field.name }}" {% if field.required is not defined or field.required %}required{% endif %}>
+                      {% endif %}
+                    </div>
+                 </div>
+                 {% endfor %}
+                 {% endif %}
+              </div>
+              <div class="col-md-6">
+                  <h5>Given Constants</h5>
+                  <table class="table table-sm table-bordered">
+                      <thead><tr><th>Constant</th><th>Value</th><th>Unit</th></tr></thead>
+                      <tbody>
+                          {% for key, item in experiment.content.constants.items() %}
+                          <tr>
+                              <td>{{ item.desc }}</td>
+                              <td>
+                                  {% if key in ['cpw', 'rho'] %}
+                                  <input type="number" step="any" class="form-control form-control-sm" name="{{ key }}" value="{{ item.value }}">
+                                  {% else %}
+                                  {{ item.value }}
+                                  {% endif %}
+                              </td>
+                              <td>
+                                  {% if key == 'cpw' %}
+                                  <select class="form-select form-select-sm" name="cpw_unit">
+                                      <option value="J/kgK" {% if item.unit == 'J/kgK' %}selected{% endif %}>J/kgK</option>
+                                      <option value="kJ/kgK" {% if item.unit == 'kJ/kgK' %}selected{% endif %}>kJ/kgK</option>
+                                  </select>
+                                  {% elif key == 'rho' %}
+                                  <select class="form-select form-select-sm" name="rho_unit">
+                                      <option value="kg/m^3" selected>kg/m^3</option>
+                                  </select>
+                                  {% elif key == 'd_rod' %}
+                                  <select class="form-select form-select-sm" name="rod_diameter_unit">
+                                      <option value="m" {% if item.unit == 'm' %}selected{% endif %}>m</option>
+                                      <option value="mm" {% if item.unit == 'mm' %}selected{% endif %}>mm</option>
+                                  </select>
+                                  {% elif key in ['l1','l2','l3','ri','ro','dx'] %}
+                                  <select class="form-select form-select-sm" name="{{ key }}_unit">
+                                      <option value="m" {% if item.unit == 'm' %}selected{% endif %}>m</option>
+                                      <option value="mm" {% if item.unit == 'mm' %}selected{% endif %}>mm</option>
+                                  </select>
+                                  {% else %}
+                                  {{ item.unit }}
+                                  {% endif %}
+                              </td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+                  <div class="mt-4">
+                      <button type="button" class="btn btn-success w-100" onclick="calculateExperiment()">
+                          <i class="fas fa-calculator me-2"></i>Compute Results
+                      </button>
+                  </div>
+              </div>
+          </div>
+      </form>
+  </div>
+
+  <!-- Calculations (Results) -->
+  <div class="tab-pane fade" id="calculations" role="tabpanel">
+      <div id="resultsArea" class="d-none">
+          <div class="alert alert-success">Calculation Successful</div>
+          
+          <div class="row">
+              <div class="col-md-12">
+                  <h5>Step-by-Step Working</h5>
+                  <div id="stepsContainer"></div>
+              </div>
+          </div>
+
+          <div id="warningsArea" class="alert alert-warning d-none mt-3"></div>
+
+          <div class="row mt-3">
+              <div class="col-md-12">
+                  <div id="trialResultsContainer" class="mb-3"></div>
+                  <div id="explanationContainer" class="mb-3"></div>
+                  <h5>Calculation Trace (Normalized SI)</h5>
+                  <div id="traceContainer"></div>
+              </div>
+          </div>
+          
+          <hr>
+          <div class="row mt-4">
+              <div class="col-md-12">
+                   <h5>Graphs</h5>
+                   <canvas id="tempDistChart" width="400" height="200" style="background:white;"></canvas>
+                   <canvas id="comparisonChart" width="400" height="200" style="background:white; display:none;" class="mt-3"></canvas>
+              </div>
+          </div>
+
+          <div class="mt-4 text-end">
+              <button class="btn btn-danger" onclick="generatePDF()"><i class="fas fa-file-pdf me-2"></i>Generate Report PDF</button>
+              <button class="btn btn-primary" onclick="saveRun()"><i class="fas fa-save me-2"></i>Save Run</button>
+          </div>
+      </div>
+      <div id="resultsPlaceholder" class="text-center text-muted py-5">
+          <i class="fas fa-arrow-left me-2"></i> Enter data in Observations tab and click Compute.
+      </div>
+  </div>
+
+  <!-- Simulation -->
+  <div class="tab-pane fade" id="simulation" role="tabpanel">
+      <div class="row">
+          {% if experiment.slug == 'natural-convection-vertical-tube' %}
+          <div class="col-md-4 border-end">
+              <h5>Controls</h5>
+              <div class="mb-3">
+                  <label class="form-label">Heating Power Q (W)</label>
+                  <input type="range" class="form-range" min="20" max="300" step="10" id="simQ" value="100" oninput="updateSim()">
+                  <div class="text-end" id="simQVal">100</div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Estimated ΔT (K)</label>
+                  <input type="range" class="form-range" min="5" max="80" step="1" id="simDeltaT" value="30" oninput="updateSim()">
+                  <div class="text-end" id="simDeltaTVal">30</div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Tube Diameter (m)</label>
+                  <input type="number" step="any" class="form-control" id="simDTube" value="{{ experiment.content.constants.d_tube.value if experiment.content.constants.d_tube is defined else 0.038 }}" oninput="updateSim()">
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Tube Length (m)</label>
+                  <input type="number" step="any" class="form-control" id="simLTube" value="{{ experiment.content.constants.L_tube.value if experiment.content.constants.L_tube is defined else 0.5 }}" oninput="updateSim()">
+              </div>
+              <small class="text-muted">Simple model: h = Q / (A<sub>s</sub>ΔT)</small>
+          </div>
+          <div class="col-md-8">
+               <h5>Predicted h vs Power</h5>
+               <canvas id="simChart"></canvas>
+          </div>
+          {% else %}
+          <div class="col-md-4 border-end">
+              <h5>Controls</h5>
+              <div class="mb-3">
+                  <label class="form-label">Water Flow Rate (L/min)</label>
+                  <input type="range" class="form-range" min="0.1" max="0.5" step="0.05" id="simFlow" value="0.15" oninput="updateSim()">
+                  <div class="text-end" id="simFlowVal">0.15</div>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Heater Input (Watts approx)</label>
+                  <input type="range" class="form-range" min="10" max="100" step="5" id="simHeat" value="40" oninput="updateSim()">
+                  <div class="text-end" id="simHeatVal">40</div>
+              </div>
+          </div>
+          <div class="col-md-8">
+               <h5>Predicted Temperature Distribution</h5>
+               <canvas id="simChart"></canvas>
+          </div>
+          {% endif %}
+      </div>
+  </div>
+
+  <!-- Viva -->
+  <div class="tab-pane fade" id="viva" role="tabpanel">
+      <div class="accordion" id="vivaAccordion">
+          {% for q in experiment.content.viva %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ loop.index }}">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+                Q{{ loop.index }}: {{ q.question }}
+              </button>
+            </h2>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#vivaAccordion">
+              <div class="accordion-body">
+                <strong>Answer:</strong> {{ q.answer }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+      </div>
+  </div>
+
+  <!-- Hidden form for PDF submission -->
+  <form id="pdfForm" action="{{ url_for('main.generate_report', slug=experiment.slug) }}" method="POST" target="_blank" style="display:none;">
+      <!-- Inputs will be cloned here via JS -->
+      <input type="hidden" name="graph_img" id="graph_img_input">
+  </form>
+
+</div>
+{% endblock %}

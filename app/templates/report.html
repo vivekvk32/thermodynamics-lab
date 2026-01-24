@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Report - {{ experiment.title }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        h1,
+        h2,
+        h3 {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 18pt;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            font-size: 14pt;
+            margin-bottom: 20px;
+            text-decoration: underline;
+        }
+
+        h4 {
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 12pt;
+            border-bottom: 1px solid #000;
+            display: inline-block;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px double #000;
+            padding-bottom: 10px;
+        }
+
+        .student-details {
+            margin-bottom: 20px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        .student-details table {
+            width: 100%;
+        }
+
+        .student-details td {
+            padding: 5px;
+        }
+
+        table.data {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 10pt;
+        }
+
+        table.data th,
+        table.data td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .content-section {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .math {
+            font-family: "Courier New", monospace;
+            background: #f0f0f0;
+            padding: 2px;
+        }
+
+        .math-block {
+            font-family: "Courier New", monospace;
+            background: #f0f0f0;
+            padding: 4px 6px;
+            margin: 6px 0;
+            text-align: center;
+        }
+
+        .calc-list {
+            font-size: 10pt;
+            margin-top: 8px;
+        }
+
+        .graph-container {
+            text-align: center;
+            margin-top: 20px;
+            page-break-inside: avoid;
+        }
+
+        .graph-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+
+        .footer {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+            page-break-inside: avoid;
+        }
+
+        .sig-line {
+            border-top: 1px solid #000;
+            width: 200px;
+            text-align: center;
+            padding-top: 5px;
+            display: inline-block;
+            margin-top: 40px;
+        }
+
+        .print-hint {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 8px 10px;
+            font-size: 10pt;
+            margin-bottom: 12px;
+        }
+
+        @media print {
+            .print-hint {
+                display: none;
+            }
+        }
+
+        /* Helper for mathml */
+        math {
+            font-size: 12pt;
+        }
+    </style>
+</head>
+
+<body>
+    {% if print_hint %}
+    <div class="print-hint">
+        PDF rendering failed. Use your browser Print (Ctrl+P) and select "Save as PDF".
+    </div>
+    {% endif %}
+
+    <div class="header">
+        <h1>DEPARTMENT OF MARINE ENGINEERING</h1>
+        <h3>Thermodynamics Laboratory</h3>
+    </div>
+
+    <h2>{{ experiment.title }}</h2>
+
+    <div class="student-details">
+        <table>
+            <tr>
+                <td><strong>Name:</strong> {{ student.name }}</td>
+                <td><strong>USN:</strong> {{ student.usn }}</td>
+            </tr>
+            <tr>
+                <td><strong>Date:</strong> {{ student.date }}</td>
+                <td><strong>Instructor:</strong> {{ student.instructor }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="content-section">
+        <h4>Aim</h4>
+        <p>{{ experiment.content.aim }}</p>
+    </div>
+
+    <div class="content-section">
+        <h4>Apparatus</h4>
+        <p>{{ experiment.content.apparatus }}</p>
+    </div>
+
+    <div class="content-section">
+        <h4>Theory</h4>
+        <div>{{ theory_html | safe }}</div>
+    </div>
+
+    <div class="content-section">
+        <h4>Procedure</h4>
+        <ol>
+            {% for step in experiment.content.procedure %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div class="content-section">
+        <h4>Observations & Calculations</h4>
+        {% if experiment.slug == 'natural-convection-vertical-tube' %}
+        <p><strong>Observations:</strong></p>
+        <table class="data">
+            <tr>
+                <th>Trial</th>
+                <th>V (V)</th>
+                <th>I (A)</th>
+                <th>T1</th>
+                <th>T2</th>
+                <th>T3</th>
+                <th>T4</th>
+                <th>T5</th>
+                <th>T6</th>
+                <th>Ambient T7 = Ta</th>
+            </tr>
+            {% for obs in raw_inputs.observations %}
+            <tr>
+                <td>{{ obs.trial }}</td>
+                <td>{{ obs.v }}</td>
+                <td>{{ obs.i }}</td>
+                <td>{{ obs.t1 }}</td>
+                <td>{{ obs.t2 }}</td>
+                <td>{{ obs.t3 }}</td>
+                <td>{{ obs.t4 }}</td>
+                <td>{{ obs.t5 }}</td>
+                <td>{{ obs.t6 }}</td>
+                <td>{{ obs.t7 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p style="margin-top:20px;"><strong>Constants:</strong></p>
+        <table class="data">
+            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+            {% for key, item in experiment.content.constants.items() %}
+            <tr>
+                <td>{{ item.desc }}</td>
+                <td>{{ item.value }}</td>
+                <td>{{ item.unit }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p style="margin-top:20px;"><strong>Air Properties ({{ results.props_source }}):</strong></p>
+        <table class="data">
+            <tr>
+                <th>Trial</th>
+                <th>rho (kg/m^3)</th>
+                <th>Cp (J/kgK)</th>
+                <th>k (W/mK)</th>
+                <th>mu (Pa.s)</th>
+                <th>nu (m^2/s)</th>
+                <th>Pr</th>
+            </tr>
+            {% for trial in results.trials %}
+            <tr>
+                <td>{{ trial.trial }}</td>
+                <td>{{ trial.rho }}</td>
+                <td>{{ trial.cp }}</td>
+                <td>{{ trial.k_air }}</td>
+                <td>{{ trial.mu }}</td>
+                <td>{{ trial.nu_kin }}</td>
+                <td>{{ trial.pr }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p style="margin-top:20px;"><strong>Computed Values:</strong></p>
+        <table class="data">
+            <tr><th>Parameter</th><th>Value</th><th>Unit</th></tr>
+            {% for trial in results.trials %}
+            <tr>
+                <td colspan="3" style="background:#eee;"><strong>Trial {{ trial.trial }}</strong></td>
+            </tr>
+            <tr><td>Q</td><td>{{ trial.q }}</td><td>W</td></tr>
+            <tr><td>Ts</td><td>{{ trial.ts }}</td><td>C</td></tr>
+            <tr><td>Ta</td><td>{{ trial.ta }}</td><td>C</td></tr>
+            <tr><td>DeltaT</td><td>{{ trial.delta_t }}</td><td>K</td></tr>
+            <tr><td>Tf</td><td>{{ trial.tf }}</td><td>K</td></tr>
+            <tr><td>Gr</td><td>{{ trial.gr }}</td><td>-</td></tr>
+            <tr><td>Ra</td><td>{{ trial.ra }}</td><td>-</td></tr>
+            <tr><td>Nu</td><td>{{ trial.nu_nusselt }}</td><td>-</td></tr>
+            <tr><td>A_s</td><td>{{ trial.area_s }}</td><td>m^2</td></tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p><strong>Raw Inputs:</strong></p>
+        <table class="data">
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+            <tr>
+                <td>Flow Rate</td>
+                <td>{{ raw_inputs.flow_rate_value }}</td>
+                <td>{{ raw_inputs.flow_rate_unit }}</td>
+            </tr>
+            <tr>
+                <td>Water Inlet (Twi)</td>
+                <td>{{ raw_inputs.t_wi }}</td>
+                <td>C</td>
+            </tr>
+            <tr>
+                <td>Water Outlet (Two)</td>
+                <td>{{ raw_inputs.t_wo }}</td>
+                <td>C</td>
+            </tr>
+            {% for i in range(5) %}
+            <tr>
+                <td>Rod Temp T{{ i+1 }}</td>
+                <td>{{ raw_inputs.t_rod[i] }}</td>
+                <td>C</td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td colspan="3" style="background:#eee;">Insulation Temps</td>
+            </tr>
+            {% for k, v in raw_inputs.t_ins.items() %}
+            <tr>
+                <td>Insulation T{{ k }}</td>
+                <td>{{ v }}</td>
+                <td>C</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <p style="margin-top:20px;"><strong>Constants (Raw Units):</strong></p>
+        <table class="data">
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+            <tr>
+                <td>Rod Diameter</td>
+                <td>{{ raw_inputs.d_rod }}</td>
+                <td>{{ raw_inputs.rod_diameter_unit }}</td>
+            </tr>
+            <tr>
+                <td>L1</td>
+                <td>{{ raw_inputs.l1 }}</td>
+                <td>{{ raw_inputs.l1_unit }}</td>
+            </tr>
+            <tr>
+                <td>L2</td>
+                <td>{{ raw_inputs.l2 }}</td>
+                <td>{{ raw_inputs.l2_unit }}</td>
+            </tr>
+            <tr>
+                <td>L3</td>
+                <td>{{ raw_inputs.l3 }}</td>
+                <td>{{ raw_inputs.l3_unit }}</td>
+            </tr>
+            <tr>
+                <td>ri</td>
+                <td>{{ raw_inputs.ri }}</td>
+                <td>{{ raw_inputs.ri_unit }}</td>
+            </tr>
+            <tr>
+                <td>ro</td>
+                <td>{{ raw_inputs.ro }}</td>
+                <td>{{ raw_inputs.ro_unit }}</td>
+            </tr>
+            <tr>
+                <td>dx</td>
+                <td>{{ raw_inputs.dx }}</td>
+                <td>{{ raw_inputs.dx_unit }}</td>
+            </tr>
+            <tr>
+                <td>k_ins</td>
+                <td>{{ raw_inputs.kins }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr>
+                <td>Cp (water)</td>
+                <td>{{ raw_inputs.cpw }}</td>
+                <td>{{ raw_inputs.cpw_unit }}</td>
+            </tr>
+            <tr>
+                <td>rho (water)</td>
+                <td>{{ raw_inputs.rho }}</td>
+                <td>{{ raw_inputs.rho_unit }}</td>
+            </tr>
+        </table>
+
+        <p style="margin-top:20px;"><strong>Normalized SI (Key Values):</strong></p>
+        <table class="data">
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+            <tr>
+                <td>Vdot</td>
+                <td>{{ normalized.vdot_m3s }}</td>
+                <td>m^3/s</td>
+            </tr>
+            <tr>
+                <td>m_dot</td>
+                <td>{{ normalized.m_dot }}</td>
+                <td>kg/s</td>
+            </tr>
+            <tr>
+                <td>Area</td>
+                <td>{{ results.area }}</td>
+                <td>m^2</td>
+            </tr>
+            <tr>
+                <td>(dT/dx)_xx</td>
+                <td>{{ trace.grads[0] }}</td>
+                <td>K/m</td>
+            </tr>
+            <tr>
+                <td>(dT/dx)_yy</td>
+                <td>{{ trace.grads[1] }}</td>
+                <td>K/m</td>
+            </tr>
+            <tr>
+                <td>(dT/dx)_zz</td>
+                <td>{{ trace.grads[2] }}</td>
+                <td>K/m</td>
+            </tr>
+            <tr>
+                <td>ln(ro/ri)</td>
+                <td>{{ trace.ln_ro_ri }}</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Radial Loss XX</td>
+                <td>{{ trace.loss_xx }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Radial Loss YY</td>
+                <td>{{ trace.loss_yy }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Radial Loss ZZ</td>
+                <td>{{ trace.loss_zz }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Qw</td>
+                <td>{{ trace.qw }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Qxx</td>
+                <td>{{ trace.qs[0] }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Qyy</td>
+                <td>{{ trace.qs[1] }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Qzz</td>
+                <td>{{ trace.qs[2] }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>Kxx</td>
+                <td>{{ trace.ks[0] }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr>
+                <td>Kyy</td>
+                <td>{{ trace.ks[1] }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr>
+                <td>Kzz</td>
+                <td>{{ trace.ks[2] }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr style="font-weight:bold; background:#eee;">
+                <td>K_avg</td>
+                <td>{{ trace.k_avg }}</td>
+                <td>W/mK</td>
+            </tr>
+        </table>
+        {% endif %}
+
+        {% if warnings and warnings|length > 0 %}
+        <p style="margin-top:20px;"><strong>Warnings:</strong></p>
+        <ul>
+            {% for w in warnings %}
+            <li>{{ w }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <p style="margin-top:20px;"><strong>Key Results:</strong></p>
+        <table class="data">
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Unit</th>
+            </tr>
+            {% if experiment.slug == 'natural-convection-vertical-tube' %}
+            {% for trial in results.trials %}
+            <tr>
+                <td>Trial {{ trial.trial }} h_exp</td>
+                <td>{% if trial.h_exp is not none %}{{ trial.h_exp | round(3) }}{% else %}-{% endif %}</td>
+                <td>W/m^2K</td>
+            </tr>
+            <tr>
+                <td>Trial {{ trial.trial }} h_theoretical</td>
+                <td>{% if trial.h_theoretical is not none %}{{ trial.h_theoretical | round(3) }}{% else %}-{% endif %}</td>
+                <td>W/m^2K</td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td>Heat carried by Water (Qw)</td>
+                <td>{{ results.qw | round(2) }}</td>
+                <td>W</td>
+            </tr>
+            <tr>
+                <td>K (Section XX)</td>
+                <td>{{ results.ks[0] | round(2) }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr>
+                <td>K (Section YY)</td>
+                <td>{{ results.ks[1] | round(2) }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr>
+                <td>K (Section ZZ)</td>
+                <td>{{ results.ks[2] | round(2) }}</td>
+                <td>W/mK</td>
+            </tr>
+            <tr style="font-weight:bold; background:#eee;">
+                <td>Average K</td>
+                <td>{{ results.k_avg | round(3) }}</td>
+                <td>W/mK</td>
+            </tr>
+            {% endif %}
+        </table>
+        {% if experiment.slug == 'natural-convection-vertical-tube' %}
+        <p style="margin-top:10px;"><strong>Result:</strong></p>
+        {% for trial in results.trials %}
+        <p>
+            For Trial {{ trial.trial }}:
+            h_exp = {% if trial.h_exp is not none %}{{ trial.h_exp | round(3) }}{% else %}-{% endif %} W/m²K,
+            h_theoretical = {% if trial.h_theoretical is not none %}{{ trial.h_theoretical | round(3) }}{% else %}-{% endif %} W/m²K
+        </p>
+        {% endfor %}
+        {% endif %}
+
+        <p style="margin-top:20px;"><strong>Detailed Calculations:</strong></p>
+        {% if experiment.slug == 'natural-convection-vertical-tube' and steps_by_trial %}
+            {% for trial in steps_by_trial %}
+            <h5>Trial {{ trial.trial }}</h5>
+            <ol class="calc-list">
+                {% for step in trial.steps %}
+                <li>{{ step | safe }}</li>
+                {% endfor %}
+            </ol>
+            {% endfor %}
+        {% else %}
+            <ol class="calc-list">
+                {% for step in steps %}
+                <li>{{ step | safe }}</li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+    </div>
+
+    {% if experiment.slug == 'natural-convection-vertical-tube' %}
+    <div class="content-section">
+        <h4>Student Explanation</h4>
+        {% for block in explanation_blocks %}
+        <div style="margin-bottom:10px;">{{ block | safe }}</div>
+        {% endfor %}
+        <div>{{ final_explanation | safe }}</div>
+    </div>
+    {% endif %}
+
+    {% if request.form.get('graph_img') %}
+    <div class="graph-container">
+        <h4>Temperature Distribution Graph</h4>
+        <img src="{{ request.form.get('graph_img') }}" alt="Graph">
+    </div>
+    {% endif %}
+    {% if request.form.get('graph_img_2') %}
+    <div class="graph-container">
+        <h4>Comparison Graph</h4>
+        <img src="{{ request.form.get('graph_img_2') }}" alt="Graph">
+    </div>
+    {% endif %}
+
+    <div class="content-section">
+        <h4>Viva Voce</h4>
+        <ul>
+            {% for q in experiment.content.viva %}
+            <li><strong>Q:</strong> {{ q.question }}<br><em>A: {{ q.answer }}</em></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="footer">
+        <div style="float:left;" class="sig-line">Student Signature</div>
+        <div style="float:right;" class="sig-line">Instructor Signature</div>
+    </div>
+
+</body>
+
+</html>

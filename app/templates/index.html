@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">Thermodynamics Digital Lab Manual</h1>
+            <p class="lead">Welcome to the advanced digital laboratory for Marine Engineering.</p>
+            <hr class="my-4">
+            <p>Select an experiment from the sidebar or the list below to begin your session.</p>
+            {% if experiments and experiments|length > 0 %}
+            <div class="list-group">
+                {% for exp in experiments|sort(attribute='id') %}
+                <a class="list-group-item list-group-item-action" href="{{ url_for('main.experiment_view', slug=exp.slug) }}">
+                    {{ loop.index }}. {{ exp.title }}
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <a class="btn btn-primary btn-lg"
+                href="{{ url_for('main.experiment_view', slug='therm-conductivity-metal-rod') }}" role="button">Start
+                Experiment 1</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                System Status
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Database
+                        <span class="badge bg-success rounded-pill">Connected</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Experiments Available
+                        <span class="badge bg-primary rounded-pill">{{ experiments|length }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
