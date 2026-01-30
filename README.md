@@ -67,3 +67,8 @@ Access the admin dashboard at `http://127.0.0.1:5000/admin`.
 - **Backend**: Flask, SQLAlchemy, SQLite, NumPy
 - **Frontend**: Bootstrap 5, Chart.js, MathJax
 - **PDF**: WeasyPrint, latex2mathml
+
+## Developer Notes (Maintenance)
+- **LaTeX in f-strings**: When embedding LaTeX in Python f-strings, escape braces with double braces (e.g., `h_{{exp}}`, `\\text{{W/m}}`). Unescaped `{exp}` inside `$...$` will raise `NameError: name 'exp' is not defined` at runtime.
+- **Where calculations live**: Core math is in `app/utils.py`; request handlers in `app/blueprints/api.py` and `app/blueprints/main.py`; front-end rendering in `app/static/js/experiment.js`; report layout in `app/templates/report.html`.
+- **Adding experiments**: See `AGENTS.md` for a checklist and pitfalls.

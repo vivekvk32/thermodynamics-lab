@@ -147,6 +147,16 @@
             font-size: 12pt;
         }
     </style>
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$']]
+        },
+        svg: { fontCache: 'global' }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 </head>
 
 <body>
@@ -550,8 +560,8 @@
         {% for trial in results.trials %}
         <p>
             For Trial {{ trial.trial }}:
-            h_exp = {% if trial.h_exp is not none %}{{ trial.h_exp | round(3) }}{% else %}-{% endif %} W/m²K,
-            h_theoretical = {% if trial.h_theoretical is not none %}{{ trial.h_theoretical | round(3) }}{% else %}-{% endif %} W/m²K
+            $h_{exp} = {% if trial.h_exp is not none %}{{ trial.h_exp | round(3) }}{% else %}-{% endif %}\ \text{W/m}^2\text{K}$,
+            $h_{theoretical} = {% if trial.h_theoretical is not none %}{{ trial.h_theoretical | round(3) }}{% else %}-{% endif %}\ \text{W/m}^2\text{K}$
         </p>
         {% endfor %}
         {% endif %}
@@ -611,6 +621,20 @@
         <div style="float:left;" class="sig-line">Student Signature</div>
         <div style="float:right;" class="sig-line">Instructor Signature</div>
     </div>
+
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise();
+        }
+      });
+      window.addEventListener('beforeprint', () => {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+          window.MathJax.typesetPromise();
+        }
+      });
+    </script>
 
 </body>
 

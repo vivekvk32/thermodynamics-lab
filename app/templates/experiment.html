@@ -104,34 +104,208 @@
                  <div class="mb-3">
                      <label class="form-label">Air Properties Mode</label>
                      <select class="form-select" name="air_props_mode">
-                         <option value="auto" selected>Auto (from film temperature)</option>
-                         <option value="manual">Manual (enter properties)</option>
+                         <option value="auto">Auto (from film temperature)</option>
+                         <option value="manual" selected>Manual (enter properties)</option>
                      </select>
+                     <div class="form-text">Enter air properties at film temperature (T<sub>f</sub>) from the data handbook.</div>
                  </div>
-                 <div class="row g-2 field-row" data-prop-group="air_props_manual">
-                     <div class="col-6">
-                         <label class="form-label">Air Density (rho)</label>
-                         <input type="number" step="any" class="form-control" name="rho_air">
-                     </div>
-                     <div class="col-6">
-                         <label class="form-label">Specific Heat (Cp)</label>
-                         <input type="number" step="any" class="form-control" name="cp_air">
-                     </div>
-                     <div class="col-6">
-                         <label class="form-label">Thermal Conductivity (k)</label>
-                         <input type="number" step="any" class="form-control" name="k_air">
-                     </div>
-                     <div class="col-6">
-                         <label class="form-label">Dynamic Viscosity (mu)</label>
-                         <input type="number" step="any" class="form-control" name="mu_air">
-                     </div>
-                     <div class="col-6">
-                         <label class="form-label">Kinematic Viscosity (nu)</label>
-                         <input type="number" step="any" class="form-control" name="nu_air">
-                     </div>
-                     <div class="col-6">
-                         <label class="form-label">Prandtl Number (Pr)</label>
-                         <input type="number" step="any" class="form-control" name="pr_air">
+                 <div class="air-props-panel field-row" data-prop-group="air_props_manual">
+                     <div class="row g-3">
+                         <div class="col-lg-8">
+                             <div class="row g-2 air-props-grid">
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="rho">
+                                         <label class="form-label">Air Density (rho)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="rho_air" placeholder="e.g., 1.127" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">kg/m<sup>3</sup></span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="cp">
+                                         <label class="form-label">Specific Heat (Cp)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="cp_air" placeholder="e.g., 1007" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">J/kg&middot;K</span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="k">
+                                         <label class="form-label">Thermal Conductivity (k)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="k_air" placeholder="e.g., 0.02662" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">W/m&middot;K</span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="mu">
+                                         <label class="form-label">Dynamic Viscosity (mu)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="mu_air" placeholder="e.g., 1.918e-5" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">kg/m&middot;s</span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="nu">
+                                         <label class="form-label">Kinematic Viscosity (nu)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="nu_air" placeholder="e.g., 1.702e-5" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">m<sup>2</sup>/s</span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="air-prop-field" data-prop="pr">
+                                         <label class="form-label">Prandtl Number (Pr)</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control scientific-input" name="pr_air" placeholder="e.g., 0.7255" inputmode="decimal" autocomplete="off">
+                                             <span class="input-group-text">&mdash;</span>
+                                             <button class="btn btn-outline-secondary sci-helper-toggle" type="button">×10^</button>
+                                         </div>
+                                         <div class="sci-helper mt-1 d-none">
+                                             <div class="row g-1">
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-mantissa" placeholder="Mantissa" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col">
+                                                     <input type="text" class="form-control form-control-sm sci-exponent" placeholder="Exponent" inputmode="decimal" autocomplete="off">
+                                                 </div>
+                                                 <div class="col-auto">
+                                                     <button type="button" class="btn btn-sm btn-primary sci-apply">Apply</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="form-text sci-preview d-none"></div>
+                                         <div class="form-text text-warning sci-warning d-none"></div>
+                                         <div class="form-text text-danger sci-error d-none"></div>
+                                     </div>
+                                 </div>
+                             </div>
+                             <div class="air-props-tools mt-2">
+                                 <div class="row g-2 align-items-end">
+                                     <div class="col-md-5">
+                                         <label class="form-label small">Preset</label>
+                                         <select class="form-select form-select-sm" id="airPropsPreset">
+                                             <option value="">Select preset</option>
+                                             <option value="tf31558">Tf=315.58 K (example)</option>
+                                         </select>
+                                     </div>
+                                     <div class="col-md-7">
+                                         <label class="form-label small">Paste from handbook row</label>
+                                         <div class="input-group input-group-sm">
+                                             <input type="text" class="form-control" id="airPropsPaste" placeholder="1.127, 1007, 0.02662, 1.918e-5, 1.702e-5, 0.7255">
+                                             <button class="btn btn-outline-primary" type="button" id="airPropsPasteApply">Apply</button>
+                                         </div>
+                                         <div class="form-text">Order: rho, Cp, k, mu, nu, Pr</div>
+                                         <div class="form-text text-danger d-none" id="airPropsPasteError"></div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="col-lg-4">
+                             <div class="card air-props-preview">
+                                 <div class="card-header py-1">Computed preview</div>
+                                 <div class="card-body py-2">
+                                     <div id="airPropsPreview" class="small">
+                                         <div class="d-flex justify-content-between"><span>rho</span><span data-preview="rho">-</span></div>
+                                         <div class="d-flex justify-content-between"><span>Cp</span><span data-preview="cp">-</span></div>
+                                         <div class="d-flex justify-content-between"><span>k</span><span data-preview="k">-</span></div>
+                                         <div class="d-flex justify-content-between"><span>mu</span><span data-preview="mu">-</span></div>
+                                         <div class="d-flex justify-content-between"><span>nu</span><span data-preview="nu">-</span></div>
+                                         <div class="d-flex justify-content-between"><span>Pr</span><span data-preview="pr">-</span></div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
                      </div>
                  </div>
                  <div class="mt-4 table-responsive">

@@ -6,7 +6,6 @@ from app.utils import (
     calculate_experiment,
     build_therm_conductivity_steps,
     build_natural_convection_steps,
-    format_theory_html,
 )
 
 bp = Blueprint('main', __name__)
@@ -60,7 +59,7 @@ def generate_report(slug):
         'steps_by_trial': steps_by_trial,
         'explanation_blocks': calc_data.get('explanation_blocks', []),
         'final_explanation': calc_data.get('final_explanation', ''),
-        'theory_html': format_theory_html(experiment.content.get('theory', ''))
+        'theory_html': experiment.content.get('theory', '')
     }
     
     # Custom filter for LaTeX -> MathML

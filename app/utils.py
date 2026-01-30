@@ -65,7 +65,8 @@ def parse_numeric(value):
     except (ValueError, TypeError):
         pass
 
-    compact = re.sub(r"\s+", "", text.lower()).replace("**", "^")
+    compact = re.sub(r"\s+", "", text.lower())
+    compact = compact.replace("**", "^").replace("×", "x").replace("−", "-").replace("–", "-")
 
     # Support "10^-6"
     match = re.match(r"^10\^?([+-]?\d+)$", compact)
@@ -312,21 +313,37 @@ def build_therm_conductivity_steps(calc_data):
 
     steps = [
         "1. Flow conversion: "
-        f"<span class='math'>Vdot = {fmt_num(normalized['flow_rate_value'])} {normalized['flow_rate_unit']}</span> "
-        f"&rarr; <span class='math'>Vdot = {fmt_num(normalized['vdot_m3s'])} m^3/s</span>, "
-        f"<span class='math'>m_dot = rho * Vdot = {fmt_num(normalized['rho'])} * {fmt_num(normalized['vdot_m3s'])} = {fmt_num(normalized['m_dot'])} kg/s</span>",
-        f"2. Heat carried by water: <span class='math'>Q_w = m_dot C_p (T_wo - T_wi) = {fmt_num(normalized['m_dot'])} * {fmt_num(normalized['cpw'], 0)} * ({fmt_num(normalized['t_wo'])} - {fmt_num(normalized['t_wi'])}) = {fmt_num(trace['qw'])} W</span>",
-        f"3. Area of rod: <span class='math'>A = pi d^2 / 4 = pi * {fmt_num(normalized['d_rod'])}^2 / 4 = {fmt_num(trace['area'])} m^2</span>",
-        f"4. Temperature gradients: <span class='math'>(dT/dx)_xx = ({fmt_num(t_rod[0])} - {fmt_num(t_rod[2])}) / (2*{fmt_num(normalized['dx'])}) = {fmt_num(trace['grads'][0])} K/m</span>",
-        f"&nbsp;&nbsp;&nbsp;<span class='math'>(dT/dx)_yy = ({fmt_num(t_rod[1])} - {fmt_num(t_rod[3])}) / (2*{fmt_num(normalized['dx'])}) = {fmt_num(trace['grads'][1])} K/m</span>",
-        f"&nbsp;&nbsp;&nbsp;<span class='math'>(dT/dx)_zz = ({fmt_num(t_rod[2])} - {fmt_num(t_rod[4])}) / (2*{fmt_num(normalized['dx'])}) = {fmt_num(trace['grads'][2])} K/m</span>",
-        f"5. Heat through XX: <span class='math'>Q_xx = Q_w + (2*pi L1 k_ins (T12-T13)/ln(r_o/r_i)) = {fmt_num(trace['qw'])} + {fmt_num(trace['loss_xx'])} = {fmt_num(trace['qs'][0])} W</span>",
-        f"&nbsp;&nbsp;&nbsp;<span class='math'>K_xx = Q_xx / (A (dT/dx)_xx) = {fmt_num(trace['qs'][0])} / ({fmt_num(trace['area'])} * {fmt_num(trace['grads'][0])}) = {fmt_num(trace['ks'][0])} W/mK</span>",
-        f"6. Heat through YY: <span class='math'>Q_yy = Q_xx + (2*pi L2 k_ins (T8-T9)/ln(r_o/r_i)) = {fmt_num(trace['qs'][0])} + {fmt_num(trace['loss_yy'])} = {fmt_num(trace['qs'][1])} W</span>",
-        f"&nbsp;&nbsp;&nbsp;<span class='math'>K_yy = Q_yy / (A (dT/dx)_yy) = {fmt_num(trace['qs'][1])} / ({fmt_num(trace['area'])} * {fmt_num(trace['grads'][1])}) = {fmt_num(trace['ks'][1])} W/mK</span>",
-        f"7. Heat through ZZ: <span class='math'>Q_zz = Q_yy + (2*pi L3 k_ins (T6-T7)/ln(r_o/r_i)) = {fmt_num(trace['qs'][1])} + {fmt_num(trace['loss_zz'])} = {fmt_num(trace['qs'][2])} W</span>",
-        f"&nbsp;&nbsp;&nbsp;<span class='math'>K_zz = Q_zz / (A (dT/dx)_zz) = {fmt_num(trace['qs'][2])} / ({fmt_num(trace['area'])} * {fmt_num(trace['grads'][2])}) = {fmt_num(trace['ks'][2])} W/mK</span>",
-        f"8. Average conductivity: <span class='math'>K_avg = (K_xx + K_yy + K_zz)/3 = {fmt_num(trace['k_avg'])} W/mK</span>",
+        f"$$\\dot{{V}} = {fmt_num(normalized['flow_rate_value'])}\\ \\text{{{normalized['flow_rate_unit']}}} \\rightarrow "
+        f"\\dot{{V}} = {fmt_num(normalized['vdot_m3s'])}\\ \\text{{m}}^3/\\text{{s}},\\ "
+        f"\\dot{{m}} = \\rho \\dot{{V}} = {fmt_num(normalized['rho'])} \\times {fmt_num(normalized['vdot_m3s'])} = {fmt_num(normalized['m_dot'])}\\ \\text{{kg/s}}$$",
+        "2. Heat carried by water: "
+        f"$$Q_w = \\dot{{m}} C_p (T_{{wo}} - T_{{wi}}) = {fmt_num(normalized['m_dot'])} \\times {fmt_num(normalized['cpw'], 0)} "
+        f"\\times ({fmt_num(normalized['t_wo'])} - {fmt_num(normalized['t_wi'])}) = {fmt_num(trace['qw'])}\\ \\text{{W}}$$",
+        "3. Area of rod: "
+        f"$$A = \\frac{{\\pi d^2}}{{4}} = \\frac{{\\pi ({fmt_num(normalized['d_rod'])})^2}}{{4}} = {fmt_num(trace['area'])}\\ \\text{{m}}^2$$",
+        "4. Temperature gradients: "
+        f"$$\\begin{{aligned}}"
+        f"\\left(\\frac{{dT}}{{dx}}\\right)_{{xx}} &= \\frac{{{fmt_num(t_rod[0])} - {fmt_num(t_rod[2])}}}{{2\\,{fmt_num(normalized['dx'])}}} = {fmt_num(trace['grads'][0])}\\ \\text{{K/m}} \\\\"
+        f"\\left(\\frac{{dT}}{{dx}}\\right)_{{yy}} &= \\frac{{{fmt_num(t_rod[1])} - {fmt_num(t_rod[3])}}}{{2\\,{fmt_num(normalized['dx'])}}} = {fmt_num(trace['grads'][1])}\\ \\text{{K/m}} \\\\"
+        f"\\left(\\frac{{dT}}{{dx}}\\right)_{{zz}} &= \\frac{{{fmt_num(t_rod[2])} - {fmt_num(t_rod[4])}}}{{2\\,{fmt_num(normalized['dx'])}}} = {fmt_num(trace['grads'][2])}\\ \\text{{K/m}}"
+        f"\\end{{aligned}}$$",
+        "5. Heat through XX: "
+        f"$$Q_{{xx}} = Q_w + \\frac{{2\\pi L_1 k_{{ins}}(T_{{12}}-T_{{13}})}}{{\\ln(r_o/r_i)}} "
+        f"= {fmt_num(trace['qw'])} + {fmt_num(trace['loss_xx'])} = {fmt_num(trace['qs'][0])}\\ \\text{{W}}$$"
+        f"$$K_{{xx}} = \\frac{{Q_{{xx}}}}{{A\\left(\\frac{{dT}}{{dx}}\\right)_{{xx}}}} "
+        f"= \\frac{{{fmt_num(trace['qs'][0])}}}{{{fmt_num(trace['area'])} \\times {fmt_num(trace['grads'][0])}}} = {fmt_num(trace['ks'][0])}\\ \\text{{W/mK}}$$",
+        "6. Heat through YY: "
+        f"$$Q_{{yy}} = Q_{{xx}} + \\frac{{2\\pi L_2 k_{{ins}}(T_{{8}}-T_{{9}})}}{{\\ln(r_o/r_i)}} "
+        f"= {fmt_num(trace['qs'][0])} + {fmt_num(trace['loss_yy'])} = {fmt_num(trace['qs'][1])}\\ \\text{{W}}$$"
+        f"$$K_{{yy}} = \\frac{{Q_{{yy}}}}{{A\\left(\\frac{{dT}}{{dx}}\\right)_{{yy}}}} "
+        f"= \\frac{{{fmt_num(trace['qs'][1])}}}{{{fmt_num(trace['area'])} \\times {fmt_num(trace['grads'][1])}}} = {fmt_num(trace['ks'][1])}\\ \\text{{W/mK}}$$",
+        "7. Heat through ZZ: "
+        f"$$Q_{{zz}} = Q_{{yy}} + \\frac{{2\\pi L_3 k_{{ins}}(T_{{6}}-T_{{7}})}}{{\\ln(r_o/r_i)}} "
+        f"= {fmt_num(trace['qs'][1])} + {fmt_num(trace['loss_zz'])} = {fmt_num(trace['qs'][2])}\\ \\text{{W}}$$"
+        f"$$K_{{zz}} = \\frac{{Q_{{zz}}}}{{A\\left(\\frac{{dT}}{{dx}}\\right)_{{zz}}}} "
+        f"= \\frac{{{fmt_num(trace['qs'][2])}}}{{{fmt_num(trace['area'])} \\times {fmt_num(trace['grads'][2])}}} = {fmt_num(trace['ks'][2])}\\ \\text{{W/mK}}$$",
+        "8. Average conductivity: "
+        f"$$K_{{avg}} = \\frac{{K_{{xx}} + K_{{yy}} + K_{{zz}}}}{{3}} = {fmt_num(trace['k_avg'])}\\ \\text{{W/mK}}$$",
     ]
 
     return steps
@@ -487,11 +504,12 @@ def calculate_natural_convection(slug, inputs):
     area_s = np.pi * d_tube * l_tube if d_tube and l_tube else 0.0
 
     mode = str(inputs.get("air_props_mode", "auto")).strip().lower()
-    props_source = "auto"
+    manual_mode = mode.startswith("man")
+    props_source = "manual" if manual_mode else "auto"
     rho = cp = k_air = mu = nu = pr = 0.0
+    manual_missing = False
 
-    if mode.startswith("man"):
-        props_source = "manual"
+    if manual_mode:
         rho = parse_numeric(inputs.get("rho_air", 0.0))
         cp = parse_numeric(inputs.get("cp_air", 0.0))
         k_air = parse_numeric(inputs.get("k_air", 0.0))
@@ -507,11 +525,75 @@ def calculate_natural_convection(slug, inputs):
             pr = (cp * mu) / k_air
 
         if not rho or not k_air:
+            manual_missing = True
             warnings.append("Manual properties are incomplete; rho and k are required for accurate results.")
         if not mu and not nu:
+            manual_missing = True
             warnings.append("Manual properties missing viscosity; provide mu or nu.")
-        if not pr:
+        if not pr and not (cp and mu and k_air):
+            manual_missing = True
             warnings.append("Manual properties missing Prandtl number; using computed value if possible.")
+
+        if manual_missing:
+            warnings.append("Manual properties are incomplete; auto values will be used for missing fields.")
+
+    def resolve_air_properties(tf):
+        auto_props = get_air_properties_auto(tf)
+        if not manual_mode:
+            return {
+                "rho": auto_props["rho"],
+                "cp": auto_props["cp"],
+                "k_air": auto_props["k_air"],
+                "mu": auto_props["mu"],
+                "nu": auto_props["nu"],
+                "pr": auto_props["pr"],
+                "used_auto": True,
+            }
+
+        rho_use = rho
+        cp_use = cp
+        k_use = k_air
+        mu_use = mu
+        nu_use = nu
+        used_auto = False
+
+        if not rho_use and mu_use and nu_use:
+            rho_use = mu_use / nu_use
+        if not rho_use:
+            rho_use = auto_props["rho"]
+            used_auto = True
+        if not cp_use:
+            cp_use = auto_props["cp"]
+            used_auto = True
+        if not k_use:
+            k_use = auto_props["k_air"]
+            used_auto = True
+
+        if not mu_use and nu_use and rho_use:
+            mu_use = nu_use * rho_use
+        if not nu_use and mu_use and rho_use:
+            nu_use = mu_use / rho_use
+        if not mu_use and not nu_use:
+            mu_use = auto_props["mu"]
+            nu_use = auto_props["nu"]
+            used_auto = True
+
+        pr_use = pr
+        if not pr_use and cp_use and mu_use and k_use:
+            pr_use = (cp_use * mu_use) / k_use
+        if not pr_use:
+            pr_use = auto_props["pr"]
+            used_auto = True
+
+        return {
+            "rho": rho_use,
+            "cp": cp_use,
+            "k_air": k_use,
+            "mu": mu_use,
+            "nu": nu_use,
+            "pr": pr_use,
+            "used_auto": used_auto,
+        }
     def parse_observations(payload):
         if isinstance(payload, dict) and "observations" in payload:
             obs = payload.get("observations")
@@ -629,24 +711,18 @@ def calculate_natural_convection(slug, inputs):
         tf = ((ts + ta) / 2.0) + 273.15
         beta = 1.0 / tf if tf else 0.0
 
-        if props_source == "manual":
-            rho_use = rho
-            cp_use = cp
-            k_use = k_air
-            mu_use = mu
-            nu_use = nu
-            pr_use = pr
-        else:
-            props = get_air_properties_auto(tf)
-            rho_use = props["rho"]
-            cp_use = props["cp"]
-            k_use = props["k_air"]
-            mu_use = props["mu"]
-            nu_use = props["nu"]
-            pr_use = props["pr"]
+        props = resolve_air_properties(tf)
+        rho_use = props["rho"]
+        cp_use = props["cp"]
+        k_use = props["k_air"]
+        mu_use = props["mu"]
+        nu_use = props["nu"]
+        pr_use = props["pr"]
 
-            if tf < AIR_PROPS_TABLE[0]["T"] or tf > AIR_PROPS_TABLE[-1]["T"]:
-                trial_warnings.append("Film temperature is outside auto-property table range; values were clamped.")
+        if props.get("used_auto") and (tf < AIR_PROPS_TABLE[0]["T"] or tf > AIR_PROPS_TABLE[-1]["T"]):
+            trial_warnings.append("Film temperature is outside auto-property table range; values were clamped.")
+        if manual_mode and props.get("used_auto"):
+            trial_warnings.append("Manual air properties were incomplete; auto values were used for missing entries.")
 
         if delta_t <= 0:
             return {
@@ -791,17 +867,17 @@ def calculate_natural_convection(slug, inputs):
 def build_natural_convection_steps(calc_data):
     def build_steps_for_trial(res):
         return [
-            f"1. Energy input: <span class='math'>Q = V \\times I = {fmt_num(res['q'])} W</span>",
-            f"2. Average surface temperature: <span class='math'>T_s = (T1+..+T6)/6 = {fmt_num(res['ts'])} &deg;C</span>",
-            f"3. Temperature difference: <span class='math'>\\Delta T = T_s - T_a = {fmt_num(res['delta_t'])} K</span>",
-            f"4. Film temperature: <span class='math'>T_f = ((T_s+T_a)/2)+273.15 = {fmt_num(res['tf'])} K</span>",
-            f"5. Volumetric coefficient: <span class='math'>\\beta = 1/T_f = {fmt_num(res['beta'])} 1/K</span>",
-            f"6. Grashof number: <span class='math'>Gr = L^3 \\beta g \\Delta T (\\rho^2/\\mu^2) = {fmt_num(res['gr'])}</span>",
-            f"7. Rayleigh number: <span class='math'>Ra = Gr \\times Pr = {fmt_num(res['ra'])}</span>",
-            f"8. Correlation: <span class='math'>Nu = C (Ra)^n = {fmt_num(res['nu_nusselt'])}</span> "
-            f"(C={res['corr_c']}, n={fmt_num(res['corr_n'])}, range {res['corr_range']})",
-            f"9. h from correlation: <span class='math'>h = (Nu \\times k)/L = {fmt_num(res['h_theoretical'])} W/m^2K</span>",
-            f"10. h from power balance: <span class='math'>h = Q / (A_s \\Delta T) = {fmt_num(res['h_exp'])} W/m^2K</span>",
+            f"1. Energy input: $$Q = V \\times I = {fmt_num(res['q'])}\\ \\text{{W}}$$",
+            f"2. Average surface temperature: $$T_s = \\frac{{T_1+\\cdots+T_6}}{{6}} = {fmt_num(res['ts'])}^\\circ\\text{{C}}$$",
+            f"3. Temperature difference: $$\\Delta T = T_s - T_a = {fmt_num(res['delta_t'])}\\ \\text{{K}}$$",
+            f"4. Film temperature: $$T_f = \\frac{{T_s+T_a}}{{2}} + 273.15 = {fmt_num(res['tf'])}\\ \\text{{K}}$$",
+            f"5. Volumetric coefficient: $$\\beta = \\frac{{1}}{{T_f}} = {fmt_num(res['beta'])}\\ \\text{{K}}^{{-1}}$$",
+            f"6. Grashof number: $$Gr = L^3 \\beta g \\Delta T \\left(\\frac{{\\rho^2}}{{\\mu^2}}\\right) = {fmt_num(res['gr'])}$$",
+            f"7. Rayleigh number: $$Ra = Gr \\times Pr = {fmt_num(res['ra'])}$$",
+            f"8. Correlation: $$Nu = C(Ra)^n = {fmt_num(res['nu_nusselt'])}$$ "
+            f"$\\text{{(}}C={res['corr_c']},\\ n={fmt_num(res['corr_n'])},\\ \\text{{range}}\\ {res['corr_range']}\\text{{)}}$",
+            f"9. h from correlation: $$h = \\frac{{Nu\\,k}}{{L}} = {fmt_num(res['h_theoretical'])}\\ \\text{{W/m}}^2\\text{{K}}$$",
+            f"10. h from power balance: $$h = \\frac{{Q}}{{A_s \\Delta T}} = {fmt_num(res['h_exp'])}\\ \\text{{W/m}}^2\\text{{K}}$$",
         ]
 
     results = calc_data.get("results", {})
@@ -866,11 +942,13 @@ def build_natural_convection_explanations(calc_data):
 
         block = [
             f"<b>Trial {trial_id}</b><br>",
-            f"Q = V×I = {fmt_or_dash(q)} W. This is the electrical power supplied to the heater; higher Q generally raises tube surface temperature.<br>",
-            f"T_s = {fmt_or_dash(ts)} °C, T_a = {fmt_or_dash(ta)} °C, ΔT = {fmt_or_dash(delta_t)} K. ΔT is the driving force for natural convection; larger ΔT usually increases convection strength.<br>",
-            f"Ra = {fmt_or_dash(ra)}. This indicates the strength of natural convection (buoyancy vs viscosity/thermal diffusion). Regime: {ra_class}.<br>",
-            f"Correlation used: C = {fmt_or_dash(corr_c)}, n = {fmt_or_dash(corr_n)}<br>",
-            f"h_exp = {fmt_or_dash(h_exp)} W/m²K (from power balance), h_theoretical = {fmt_or_dash(h_theoretical)} W/m²K (from correlation).<br>",
+            f"$Q = V \\times I = {fmt_or_dash(q)}\\ \\text{{W}}$. This is the electrical power supplied to the heater; higher $Q$ generally raises tube surface temperature.<br>",
+            f"$T_s = {fmt_or_dash(ts)}^\\circ\\text{{C}},\\ T_a = {fmt_or_dash(ta)}^\\circ\\text{{C}},\\ \\Delta T = {fmt_or_dash(delta_t)}\\ \\text{{K}}$. "
+            "The temperature difference $\\Delta T$ is the driving force for natural convection; larger $\\Delta T$ usually increases convection strength.<br>",
+            f"$Ra = {fmt_or_dash(ra)}$. This indicates the strength of natural convection (buoyancy vs viscosity/thermal diffusion). Regime: {ra_class}.<br>",
+            f"Correlation used: $C = {fmt_or_dash(corr_c)},\\ n = {fmt_or_dash(corr_n)}$.<br>",
+            f"$h_{{exp}} = {fmt_or_dash(h_exp)}\\ \\text{{W/m}}^2\\text{{K}}$ (from power balance), "
+            f"$h_{{theoretical}} = {fmt_or_dash(h_theoretical)}\\ \\text{{W/m}}^2\\text{{K}}$ (from correlation).<br>",
         ]
 
         if dev is None:
@@ -882,7 +960,7 @@ def build_natural_convection_explanations(calc_data):
                 block.append("<li>Steady state reached?</li>")
                 block.append("<li>T7 truly ambient?</li>")
                 block.append("<li>Radiation losses ignored</li>")
-                block.append("<li>Air properties (k, μ, Pr) at film temperature</li>")
+                block.append("<li>Air properties ($k$, $\mu$, $Pr$) at film temperature</li>")
                 block.append("<li>Instrument calibration</li>")
                 block.append("</ul>")
 
@@ -903,20 +981,21 @@ def build_natural_convection_explanations(calc_data):
 
     final_lines = [
         "<b>Overall interpretation</b><br>",
-        "Natural convection depends on temperature difference and fluid properties; Ra and Nu connect theory to the heat transfer coefficient h.<br>",
-        "We compute h_theoretical from correlations as a benchmark; experiments often differ due to real-world losses and measurement uncertainty.<br>",
-        "<br><b>Glossary:</b> T_s = average surface temperature, T_a = ambient temperature, ΔT = T_s−T_a, Ra = Gr×Pr, Nu = (hL/k).<br>",
+        "Natural convection depends on temperature difference and fluid properties; $Ra$ and $Nu$ connect theory to the heat transfer coefficient $h$.<br>",
+        "We compute $h_{theoretical}$ from correlations as a benchmark; experiments often differ due to real-world losses and measurement uncertainty.<br>",
+        "<br><b>Glossary:</b> $T_s$ = average surface temperature, $T_a$ = ambient temperature, $\\Delta T = T_s - T_a$, $Ra = Gr\\times Pr$, $Nu = (hL/k)$.<br>",
     ]
 
     if higher_trial:
         final_lines.append(
-            f"Trial {higher_trial['trial']} shows a higher experimental h ("
-            f"{fmt_num(higher_trial.get('h_exp'))} W/m²K), which is consistent with its larger ΔT or higher Q.<br>"
+            f"Trial {higher_trial['trial']} shows a higher experimental $h$ ("
+            f"${fmt_num(higher_trial.get('h_exp'))}\\ \\text{{W/m}}^2\\text{{K}}$), which is consistent with its larger $\\Delta T$ or higher $Q$.<br>"
         )
 
     if mean_h_exp is not None and mean_h_theoretical is not None:
         final_lines.append(
-            f"Mean h_exp = {fmt_num(mean_h_exp)} W/m²K, mean h_theoretical = {fmt_num(mean_h_theoretical)} W/m²K, "
+            f"Mean $h_{{exp}} = {fmt_num(mean_h_exp)}\\ \\text{{W/m}}^2\\text{{K}}$, "
+            f"mean $h_{{theoretical}} = {fmt_num(mean_h_theoretical)}\\ \\text{{W/m}}^2\\text{{K}}$, "
             f"mean deviation = {fmt_num(mean_dev)}%.<br>"
         )
 
@@ -931,7 +1010,7 @@ def build_natural_convection_explanations(calc_data):
             else:
                 dev_text = "N/A"
             final_lines.append(
-                f"The experimental heat transfer coefficient was {fmt_or_dash(h_exp)} W/m²K and the theoretical value predicted by correlation was {fmt_or_dash(h_theoretical)} W/m²K for Trial {trial.get('trial', 1)}. "
+                f"The experimental heat transfer coefficient was $h_{{exp}} = {fmt_or_dash(h_exp)}\\ \\text{{W/m}}^2\\text{{K}}$ and the theoretical value predicted by correlation was $h_{{theoretical}} = {fmt_or_dash(h_theoretical)}\\ \\text{{W/m}}^2\\text{{K}}$ for Trial {trial.get('trial', 1)}. "
                 f"The deviation was {dev_text}%, mainly due to steady-state errors, property mismatch, or heat losses.<br>"
             )
 

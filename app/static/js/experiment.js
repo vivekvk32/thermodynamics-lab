@@ -1,4 +1,5 @@
 function calculateExperiment() {
+    normalizeAllAirProps();
     const form = document.getElementById('calcForm');
     const formData = new FormData(form);
     const data = {};
@@ -39,11 +40,6 @@ function calculateExperiment() {
                     container.innerHTML = `<ul class="list-group">${result.steps.map(s => `<li class="list-group-item">${s}</li>`).join('')}</ul>`;
                 }
 
-                // Re-render MathJax
-                if (window.MathJax) {
-                    window.MathJax.typesetPromise([container]);
-                }
-
                 // Render warnings and trace
                 renderWarnings(result.warnings || []);
                 if (result.slug === 'natural-convection-vertical-tube') {
@@ -57,6 +53,11 @@ function calculateExperiment() {
 
                 // Render Charts
                 renderCharts(result);
+
+                // Re-render MathJax for all updated content
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise();
+                }
 
                 // Switch tab
                 const triggerEl = document.querySelector('#expTabs button[data-bs-target="#calculations"]');
@@ -75,6 +76,326 @@ function fmtVal(value) {
     const abs = Math.abs(num);
     if (abs !== 0 && (abs < 1e-3 || abs >= 1e4)) return num.toExponential(3);
     return num.toFixed(4);
+}
+
+const AIR_PROPS_CONFIG = {
+    rho: { name: 'rho_air', min: 0.5, max: 2.0 },
+    cp: { name: 'cp_air', min: 900, max: 1200 },
+    k: { name: 'k_air', min: 0.015, max: 0.05 },
+    mu: { name: 'mu_air', min: 1.0e-5, max: 3.0e-5, sciPreview: true },
+    nu: { name: 'nu_air', min: 1.0e-5, max: 3.0e-5, sciPreview: true },
+    pr: { name: 'pr_air', min: 0.6, max: 0.9 },
+};
+
+const AIR_PROPS_PRESETS = {
+    tf31558: {
+        rho: 1.127,
+        cp: 1007,
+        k: 0.02662,
+        mu: 1.918e-5,
+        nu: 1.702e-5,
+        pr: 0.7255,
+    }
+};
+
+const SCI_FORMAT_ERROR = 'Accepted formats: 0.00001918, 1.918e-5, 1.918×10^-5 (x or * allowed).';
+const SCI_TYPO_ERROR = 'Invalid format: use 1.918e-5 or 1.918×10^-5 (not 10e-5).';
+
+function normalizeMinusSign(text) {
+    return text.replace(/[−–]/g, '-');
+}
+
+function trimZeros(text) {
+    return text.replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '');
+}
+
+function formatNormalized(value) {
+    if (!Number.isFinite(value)) return '';
+    const abs = Math.abs(value);
+    if (abs !== 0 && (abs < 1e-3 || abs >= 1e4)) {
+        return value.toExponential(3).replace('e+', 'e');
+    }
+    return trimZeros(value.toFixed(6));
+}
+
+function formatTimesTen(value) {
+    if (!Number.isFinite(value)) return '-';
+    if (value === 0) return '0';
+    const exp = value.toExponential(3).replace('e+', 'e');
+    const parts = exp.split('e');
+    const mantissa = parts[0];
+    const exponent = parts[1] || '0';
+    return `${mantissa}&times;10<sup>${exponent}</sup>`;
+}
+
+function parseScientificInput(raw) {
+    const text = String(raw ?? '').trim();
+    if (!text) {
+        return { value: null, normalized: '', error: null };
+    }
+    if (/(?:x|\*|×)\s*10e[+-]?\d+/i.test(text)) {
+        return { value: null, normalized: '', error: SCI_TYPO_ERROR };
+    }
+
+    const normalized = normalizeMinusSign(text).replace(/×/g, 'x');
+    const compact = normalized.replace(/\s+/g, '');
+    const standardRe = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/u;
+    if (standardRe.test(compact)) {
+        const num = Number(compact);
+        if (!Number.isFinite(num)) {
+            return { value: null, normalized: '', error: SCI_FORMAT_ERROR };
+        }
+        return { value: num, normalized: formatNormalized(num), error: null };
+    }
+
+    const multRe = /^([+-]?(?:\d+\.?\d*|\.\d+))(?:x|\*)10\^?([+-]?\d+)$/iu;
+    const match = compact.match(multRe);
+    if (match) {
+        const mantissa = Number(match[1]);
+        const exponent = Number(match[2]);
+        if (!Number.isFinite(mantissa) || !Number.isFinite(exponent)) {
+            return { value: null, normalized: '', error: SCI_FORMAT_ERROR };
+        }
+        const num = mantissa * Math.pow(10, exponent);
+        return { value: num, normalized: formatNormalized(num), error: null };
+    }
+
+    const powRe = /^10\^?([+-]?\d+)$/iu;
+    const powMatch = compact.match(powRe);
+    if (powMatch) {
+        const exponent = Number(powMatch[1]);
+        if (!Number.isFinite(exponent)) {
+            return { value: null, normalized: '', error: SCI_FORMAT_ERROR };
+        }
+        const num = Math.pow(10, exponent);
+        return { value: num, normalized: formatNormalized(num), error: null };
+    }
+
+    return { value: null, normalized: '', error: SCI_FORMAT_ERROR };
+}
+
+class ScientificNumberInput {
+    constructor(wrapper, config) {
+        this.wrapper = wrapper;
+        this.config = config;
+        this.input = wrapper.querySelector('.scientific-input');
+        this.preview = wrapper.querySelector('.sci-preview');
+        this.warning = wrapper.querySelector('.sci-warning');
+        this.error = wrapper.querySelector('.sci-error');
+        this.helper = wrapper.querySelector('.sci-helper');
+        this.helperToggle = wrapper.querySelector('.sci-helper-toggle');
+        this.mantissa = wrapper.querySelector('.sci-mantissa');
+        this.exponent = wrapper.querySelector('.sci-exponent');
+        this.applyBtn = wrapper.querySelector('.sci-apply');
+        this.bind();
+    }
+
+    bind() {
+        if (this.helperToggle && this.helper) {
+            this.helperToggle.addEventListener('click', () => {
+                this.helper.classList.toggle('d-none');
+            });
+        }
+        if (this.applyBtn) {
+            this.applyBtn.addEventListener('click', () => this.applyScientific());
+        }
+        if (this.input) {
+            this.input.addEventListener('blur', () => this.normalize());
+            this.input.addEventListener('input', () => this.refresh(false));
+        }
+    }
+
+    applyScientific() {
+        const mantissaVal = Number(this.mantissa?.value);
+        const exponentVal = Number(this.exponent?.value);
+        if (!Number.isFinite(mantissaVal) || !Number.isFinite(exponentVal)) {
+            this.showError('Enter both mantissa and exponent.');
+            return;
+        }
+        const value = mantissaVal * Math.pow(10, exponentVal);
+        if (this.input) {
+            this.input.value = formatNormalized(value);
+        }
+        this.refresh(true);
+        updateAirPropsPreview();
+    }
+
+    normalize() {
+        this.refresh(true);
+        updateAirPropsPreview();
+    }
+
+    refresh(applyNormalized) {
+        if (!this.input) return;
+        const parsed = parseScientificInput(this.input.value);
+        this.clearMessages();
+
+        if (parsed.error) {
+            this.showError(parsed.error);
+            return;
+        }
+
+        if (parsed.value === null) {
+            return;
+        }
+
+        if (applyNormalized) {
+            this.input.value = parsed.normalized;
+        }
+        this.input.dataset.numericValue = String(parsed.value);
+
+        if (this.config?.sciPreview && this.preview) {
+            this.preview.innerHTML = `≈ ${formatTimesTen(parsed.value)}`;
+            this.preview.classList.remove('d-none');
+        }
+
+        if (this.config?.min !== undefined && this.config?.max !== undefined) {
+            if (parsed.value < this.config.min || parsed.value > this.config.max) {
+                this.showWarning(`Typical range ${this.config.min}–${this.config.max}. Check units / exponent.`);
+            }
+        }
+    }
+
+    showError(message) {
+        if (!this.error) return;
+        this.error.textContent = message;
+        this.error.classList.remove('d-none');
+    }
+
+    showWarning(message) {
+        if (!this.warning) return;
+        this.warning.textContent = message;
+        this.warning.classList.remove('d-none');
+    }
+
+    clearMessages() {
+        if (this.error) {
+            this.error.textContent = '';
+            this.error.classList.add('d-none');
+        }
+        if (this.warning) {
+            this.warning.textContent = '';
+            this.warning.classList.add('d-none');
+        }
+        if (this.preview) {
+            this.preview.textContent = '';
+            this.preview.classList.add('d-none');
+        }
+    }
+}
+
+function updateAirPropsPreview() {
+    const previewContainer = document.getElementById('airPropsPreview');
+    if (!previewContainer) return;
+    Object.entries(AIR_PROPS_CONFIG).forEach(([key, config]) => {
+        const input = document.querySelector(`input[name="${config.name}"]`);
+        const target = previewContainer.querySelector(`[data-preview="${key}"]`);
+        if (!input || !target) return;
+        const parsed = parseScientificInput(input.value);
+        if (parsed.value === null) {
+            target.textContent = '-';
+            return;
+        }
+        const normalized = formatNormalized(parsed.value);
+        if (config.sciPreview) {
+            target.innerHTML = `${normalized} <span class="text-muted">(${formatTimesTen(parsed.value)})</span>`;
+        } else {
+            target.textContent = normalized;
+        }
+    });
+}
+
+function applyAirPropsValues(values) {
+    Object.entries(AIR_PROPS_CONFIG).forEach(([key, config]) => {
+        const input = document.querySelector(`input[name="${config.name}"]`);
+        if (!input || values[key] === undefined) return;
+        input.value = formatNormalized(values[key]);
+        input.dispatchEvent(new Event('blur'));
+    });
+    updateAirPropsPreview();
+}
+
+function parsePasteRow(text) {
+    const cleaned = String(text ?? '').replace(/[\t;]+/g, ' ').trim();
+    if (!cleaned) return { values: null, error: 'Paste a handbook row first.' };
+    const parts = cleaned.split(/[\s,]+/u).filter(Boolean);
+    if (parts.length < 6) {
+        return { values: null, error: 'Paste 6 values: rho, Cp, k, mu, nu, Pr.' };
+    }
+    const keys = ['rho', 'cp', 'k', 'mu', 'nu', 'pr'];
+    const values = {};
+    for (let i = 0; i < keys.length; i += 1) {
+        const parsed = parseScientificInput(parts[i]);
+        if (parsed.error || parsed.value === null) {
+            return { values: null, error: `Invalid ${keys[i]} value. ${parsed.error || SCI_FORMAT_ERROR}` };
+        }
+        values[keys[i]] = parsed.value;
+    }
+    return { values, error: null };
+}
+
+function initAirPropsInputs() {
+    const panel = document.querySelector('.air-props-panel');
+    if (!panel) return;
+
+    panel.querySelectorAll('.air-prop-field').forEach((field) => {
+        const key = field.dataset.prop;
+        const config = AIR_PROPS_CONFIG[key];
+        if (!config) return;
+        new ScientificNumberInput(field, config);
+    });
+
+    const presetSelect = document.getElementById('airPropsPreset');
+    if (presetSelect) {
+        presetSelect.addEventListener('change', () => {
+            const preset = AIR_PROPS_PRESETS[presetSelect.value];
+            if (preset) {
+                applyAirPropsValues(preset);
+            }
+        });
+    }
+
+    const pasteInput = document.getElementById('airPropsPaste');
+    const pasteApply = document.getElementById('airPropsPasteApply');
+    const pasteError = document.getElementById('airPropsPasteError');
+    if (pasteApply && pasteInput) {
+        const applyPaste = () => {
+            if (!pasteInput.value.trim()) {
+                if (pasteError) {
+                    pasteError.textContent = '';
+                    pasteError.classList.add('d-none');
+                }
+                return;
+            }
+            const { values, error } = parsePasteRow(pasteInput.value);
+            if (error) {
+                if (pasteError) {
+                    pasteError.textContent = error;
+                    pasteError.classList.remove('d-none');
+                }
+                return;
+            }
+            if (pasteError) {
+                pasteError.textContent = '';
+                pasteError.classList.add('d-none');
+            }
+            applyAirPropsValues(values);
+        };
+        pasteApply.addEventListener('click', applyPaste);
+        pasteInput.addEventListener('blur', applyPaste);
+    }
+
+    updateAirPropsPreview();
+}
+
+function normalizeAllAirProps() {
+    const panel = document.querySelector('.air-props-panel');
+    if (!panel) return;
+    panel.querySelectorAll('.air-prop-field').forEach((field) => {
+        const input = field.querySelector('.scientific-input');
+        if (!input) return;
+        input.dispatchEvent(new Event('blur'));
+    });
 }
 
 function renderWarnings(warnings) {
@@ -388,6 +709,7 @@ function renderSimChart(labels, data, xLabel, yLabel) {
 }
 
 function saveRun() {
+    normalizeAllAirProps();
     const form = document.getElementById('calcForm');
     const formData = new FormData(form);
     const data = {};
@@ -417,6 +739,7 @@ function saveRun() {
 }
 
 function generatePDF() {
+    normalizeAllAirProps();
     // 1. Get the chart image
     const canvas = document.getElementById('tempDistChart');
     const dataURL = canvas ? canvas.toDataURL('image/png') : '';
@@ -543,7 +866,13 @@ document.addEventListener('DOMContentLoaded', () => {
         modeSelect.addEventListener('change', updateAirPropsVisibility);
         updateAirPropsVisibility();
     }
+    initAirPropsInputs();
     if (document.getElementById('simChart')) {
         updateSim();
     }
+    window.addEventListener('beforeprint', () => {
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise();
+        }
+    });
 });

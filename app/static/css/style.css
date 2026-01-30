@@ -133,3 +133,31 @@ body.dark-mode #explanationContainer * {
 .tab-content {
     padding-top: 20px;
 }
+
+/* Air properties scientific input UI */
+.air-props-panel .input-group-text {
+    min-width: 90px;
+    justify-content: center;
+}
+.air-props-panel .sci-helper-toggle {
+    min-width: 64px;
+}
+.air-props-panel .sci-helper {
+    padding: 6px 8px;
+    border: 1px solid #444;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.05);
+}
+body.dark-mode .air-props-panel .sci-helper {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: #333;
+}
+.air-props-panel .sci-preview {
+    color: #6c757d;
+}
+.air-props-preview .d-flex + .d-flex {
+    margin-top: 4px;
+}
+.air-props-preview span[data-preview] {
+    font-variant-numeric: tabular-nums;
+}
